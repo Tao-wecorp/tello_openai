@@ -1,2 +1,2 @@
-# tello_openai
-Tello drone running OpenAI Stable Baselines
+# Tello OpenAI
+DJI Tello drone running OpenAI Stable Baselines
