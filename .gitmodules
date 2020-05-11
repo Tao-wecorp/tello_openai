@@ -1,0 +1,3 @@
+[submodule "src/flock"]
+	path = src/flock
+	url = https://github.com/clydemcqueen/flock
