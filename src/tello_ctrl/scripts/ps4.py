@@ -21,11 +21,11 @@ class Ctrl():
         self.rate = rospy.Rate(30)
 
         self.pose_sub = rospy.Subscriber('/joy', Joy, self.ctrl_callback)
-
+        rospy.spin()
+        
     def ctrl_callback(self, data):
-        self.joy = data.buttons
-        self.joy2= data.axes
-        print(self.joy)
+        self.joy_buttons = data.buttons
+        self.joy_axes = data.axes
         
 
 if __name__ == '__main__':
