@@ -2,6 +2,9 @@
 DJI Tello drone running OpenAI Stable Baselines
 
 ## Env
+    sudo apt-get install ros-melodic-joy
+    rosrun joy joy_node 
+    sudo chmod a+rw /dev/input/js0
     catkin_create_pkg tello_ctrl std_msgs rospy roscpp
     cd src
     git submodule init
