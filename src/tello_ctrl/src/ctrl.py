@@ -22,13 +22,11 @@ class Tello(object):
         self._drone.wait_for_connection(60.0)
         rospy.loginfo('connected to drone')
 
-        # Spin until interrupted
-        rospy.spin()
+        self._drone.takeoff()
+        rospy.on_shutdown(self.shutdown)
 
-        # Force a landing
+    def shutdown(self):
         self._drone.land()
-
-        # Shut down the drone
         self._drone.quit()
         self._drone = None
 
