@@ -4,4 +4,7 @@
         <arg name="use_sim_time" value="true"/>
         <arg name="verbose" value="true"/>
     </include>
+
+    <param name="robot_description" textfile="$(find sjtu_drone)/models/sjtu_drone/sjtu_drone.urdf" />
+    <node name="spawn_model" pkg="sjtu_drone" type="spawn_model" respawn="false" />
 </launch>

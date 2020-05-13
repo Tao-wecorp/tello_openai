@@ -10,10 +10,6 @@ from sensor_msgs.msg import Joy
 import sys
 import signal
 
-def signal_handler(signal, frame): # ctrl + c -> exit program
-    print('You pressed Ctrl+C!')
-    sys.exit(0)
-signal.signal(signal.SIGINT, signal_handler)
 
 class Ctrl():
     def __init__(self):
@@ -26,7 +22,14 @@ class Ctrl():
     def ctrl_callback(self, data):
         self.joy_buttons = data.buttons
         self.joy_axes = data.axes
-        
+        print(self.joy_buttons)
+
+def main():
+    try:
+        Ctrl()
+    except KeyboardInterrupt:
+        pass
+    
 
 if __name__ == '__main__':
-    ctrl = Ctrl()
+    main()

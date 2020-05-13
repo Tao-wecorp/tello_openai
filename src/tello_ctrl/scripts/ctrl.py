@@ -30,5 +30,12 @@ class Tello(object):
         self._drone.quit()
         self._drone = None
 
+def main():
+    try:
+        Tello()
+    except KeyboardInterrupt:
+        pass
+    
+
 if __name__ == '__main__':
-    tello = Tello()
+    main()
