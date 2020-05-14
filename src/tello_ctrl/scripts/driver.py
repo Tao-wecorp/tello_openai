@@ -13,12 +13,13 @@ import numpy
 import tellopy
 from cv_bridge import CvBridge
 
-class Tello(object):
+
+class TelloDriver(object):
     def __init__(self):
-        rospy.init_node('tello_node', anonymous=False)
+        rospy.init_node('tello_driver_node', anonymous=False)
 
         # ROS publishers
-        self._flight_data_pub = rospy.Publisher('flight_data', FlightData, queue_size=10)
+        self._flight_data_pub = rospy.Publisher('tello/flight_data', FlightData, queue_size=10)
         self._image_pub = rospy.Publisher('tello/image_raw', Image, queue_size=10)
         self._cv_bridge = CvBridge()
 
@@ -35,12 +36,10 @@ class Tello(object):
         self._stop_request = threading.Event()
         video_thread = threading.Thread(target=self.video_worker)
         video_thread.start()
-
-        # self._drone.takeoff()
+        
+        rospy.spin()
         rospy.on_shutdown(self.shutdown)
 
-        rospy.spin()
-    
     def video_worker(self):
         container = av.open(self._drone.get_video_stream())
         rospy.loginfo('starting video pipeline')
@@ -77,11 +76,9 @@ class Tello(object):
 
 def main():
     try:
-        Tello()
+        TelloDriver()
     except KeyboardInterrupt:
         pass
-    finally:
-        cv2.destroyAllWindows()
     
 
 if __name__ == '__main__':
