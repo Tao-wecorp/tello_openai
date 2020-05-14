@@ -4,3 +4,6 @@
 [submodule "src/sjtu-drone"]
 	path = src/sjtu-drone
 	url = https://github.com/Tao-wecorp/sjtu-drone
+[submodule "src/vision_opencv"]
+	path = src/vision_opencv
+	url = https://github.com/Tao-wecorp/vision_opencv
