@@ -5,7 +5,7 @@ import rospy
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Image
 from std_msgs.msg import Empty
-from flock_msgs.msg import Flip, FlightData
+
 import av
 import cv2
 import numpy
@@ -36,17 +36,12 @@ class Tello(object):
     
     def video_worker(self):
         container = av.open(self._drone.get_video_stream())
-
         rospy.loginfo('starting video pipeline')
-        
+
         for frame in container.decode(video=0):
-            # PyAV frame => PIL image => OpenCV Mat
             color = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
-
-            print(color)
-
-            # color_mat = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
-            # self._image_pub.publish(self._cv_bridge.cv2_to_imgmsg(color_mat, 'bgr8'))
+            color_mat = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
+            self._image_pub.publish(self._cv_bridge.cv2_to_imgmsg(color_mat, 'bgr8'))
 
             if self._stop_request.isSet():
                 return
@@ -54,7 +49,6 @@ class Tello(object):
     def shutdown(self):
         self._drone.land()
         self._stop_request.set()
-        video_thread.join(timeout=2)
         self._drone.quit()
         self._drone = None
 
