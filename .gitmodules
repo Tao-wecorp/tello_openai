@@ -7,3 +7,6 @@
 [submodule "src/vision_opencv"]
 	path = src/vision_opencv
 	url = https://github.com/Tao-wecorp/vision_opencv
+[submodule "src/geometry2"]
+	path = src/geometry2
+	url = https://github.com/Tao-wecorp/geometry2
