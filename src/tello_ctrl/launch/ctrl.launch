@@ -1,4 +1,4 @@
 <launch>
-  <node name="driver_node" pkg="tello_ctrl" type="driver.py" output="screen" />
+  <node name="driver_node" pkg="tello_ctrl" type="drivers.py" output="screen" />
   <node name="joystick" pkg="joy" type="joy_node" output="screen" />
 </launch>

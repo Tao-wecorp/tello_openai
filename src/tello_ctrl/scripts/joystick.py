@@ -23,6 +23,7 @@ class Ctrl():
         self.joy_buttons = data.buttons
         self.joy_axes = data.axes
         print(self.joy_buttons)
+        print(self.joy_axes)
 
 def main():
     try:
