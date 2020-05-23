@@ -14,3 +14,10 @@ DJI Tello drone running OpenAI Stable Baselines
 
 ## Run
     source devel/setup.bash
+
+## Reference
+https://github.com/dji-sdk/Tello-Python
+https://github.com/clydemcqueen/flock
+https://github.com/dbaldwin/DroneBlocks-Tello-Python
+https://github.com/geaxgx/tello-openpose
+https://github.com/Ubotica/telloCV/blob/master/telloCV.py
