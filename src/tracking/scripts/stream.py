@@ -24,6 +24,7 @@ class Stream(object):
         self._drone = tellopy.Tello()
         self._drone.connect()
         self._drone.wait_for_connection(60.0)
+        self._drone.takeoff()
         rospy.loginfo('connected to drone')
 
         # Start video thread
