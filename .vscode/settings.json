@@ -1,5 +1,8 @@
 {
     "python.linting.enabled": false,
-    "python.pythonPath": "/home/robotics/.virtualenvs/py3venv/bin/python",
+    "python.autoComplete.extraPaths": [
+        "/home/robotics/Workspace/tello_openai/devel/lib/python3/dist-packages",
+        "/opt/ros/melodic/lib/python2.7/dist-packages"
+    ],
 
 }
