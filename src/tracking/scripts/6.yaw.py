@@ -28,7 +28,11 @@ class Stream(object):
         self.image_pub = rospy.Publisher('tello/image_raw', Image, queue_size=1)
         self.cv_bridge = CvBridge()
 
-         # Connect to the drone
+        # Connect to the drone
+        self.tracking = False
+        self.speed = 50
+        self.track_cmd = ""
+
         self.drone = tellopy.Tello()
         self.drone.connect()
         self.drone.wait_for_connection(60.0)
@@ -59,6 +63,17 @@ class Stream(object):
                             cmd = "counter_clockwise"
                         elif xoff > distance:
                             cmd = "clockwise"
+                        else:
+                            if self.track_cmd is not "":
+                                getattr(self.drone, self.track_cmd)(0)
+                                self.track_cmd = ""
+
+                    if cmd is not self.track_cmd:
+                        if cmd is not "":
+                            print("track command:", cmd)
+                            getattr(self.drone, cmd)(self.speed)
+                            self.track_cmd = cmd
+
 
                     cv2.circle(frame, (target[0], target[1]), 3, [0,0,255], -1, cv2.LINE_AA)
 
