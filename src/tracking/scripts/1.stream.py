@@ -10,7 +10,6 @@ import av
 import cv2
 import numpy
 import tellopy
-from tello import Tello
 from cv_bridge import CvBridge
 import time
 
@@ -24,7 +23,6 @@ class Stream(object):
         self.cv_bridge = CvBridge()
 
          # Connect to the drone
-        self.tello = Tello()
         self.drone = tellopy.Tello()
         self.drone.connect()
         self.drone.wait_for_connection(60.0)

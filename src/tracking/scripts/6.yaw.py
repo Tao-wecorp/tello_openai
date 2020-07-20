@@ -11,7 +11,6 @@ import cv2
 from copy import deepcopy
 import numpy
 import tellopy
-from tello import Tello
 from cv_bridge import CvBridge
 import time
 
@@ -30,7 +29,6 @@ class Stream(object):
         self.cv_bridge = CvBridge()
 
          # Connect to the drone
-        self.tello = Tello()
         self.drone = tellopy.Tello()
         self.drone.connect()
         self.drone.wait_for_connection(60.0)
@@ -47,10 +45,22 @@ class Stream(object):
         while not rospy.is_shutdown():
             if self.frame is not None:
                 frame = deepcopy(self.frame)
+                frame = cv2.resize(frame, (640,480))
                 centroids, bboxes = detection.detect(frame)
                 if len(centroids) != 0:
-                    for cent in centroids:
-                        cv2.circle(frame, (cent[0], cent[1]), 3, [0,0,255], -1, cv2.LINE_AA)
+                    target = centroids[0]
+                    xoffset = int(target[0] - 320)
+                    yoffset = int(240 - target[1])
+
+                    distance = 100
+                    cmd = ""
+                    if self.tracking:
+                        if xoff < -distance:
+                            cmd = "counter_clockwise"
+                        elif xoff > distance:
+                            cmd = "clockwise"
+
+                    cv2.circle(frame, (target[0], target[1]), 3, [0,0,255], -1, cv2.LINE_AA)
 
                 cv2.imshow("", frame)
                 cv2.waitKey(1)
