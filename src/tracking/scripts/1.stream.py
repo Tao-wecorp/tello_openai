@@ -17,7 +17,7 @@ class Stream(object):
         rospy.init_node('stream_node', anonymous=False)
 
         # ROS publishers
-        self.image_pub = rospy.Publisher('tello/image_raw', Image, queue_size=10)
+        self.image_pub = rospy.Publisher('tello/image_raw', Image, queue_size=1)
         self.cv_bridge = CvBridge()
 
          # Connect to the drone
