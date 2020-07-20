@@ -3,13 +3,16 @@
 import threading
 import rospy
 from sensor_msgs.msg import Image
+from std_msgs.msg import Float64, String
 from std_msgs.msg import Empty
 
 import av
 import cv2
 import numpy
 import tellopy
+from tello import Tello
 from cv_bridge import CvBridge
+import time
 
 
 class Stream(object):
@@ -21,6 +24,7 @@ class Stream(object):
         self.cv_bridge = CvBridge()
 
          # Connect to the drone
+        self.tello = Tello()
         self.drone = tellopy.Tello()
         self.drone.connect()
         self.drone.wait_for_connection(60.0)
@@ -31,6 +35,10 @@ class Stream(object):
         self.stop_request = threading.Event()
         video_thread = threading.Thread(target=self.video_worker)
         video_thread.start()
+
+        # Yaw subscriber
+        self.yaw = 0.0
+        rospy.Subscriber('/tello/yaw_angle', Float64, self.yaw_callback)
         
         rospy.spin()
         rospy.on_shutdown(self.shutdown)
@@ -51,6 +59,10 @@ class Stream(object):
             self.drone.land()
             self.drone.quit()
             self.drone = None
+
+    def yaw_callback(self, data):
+        print(data.data)
+        self.yaw = data.data
 
 def main():
     try:
