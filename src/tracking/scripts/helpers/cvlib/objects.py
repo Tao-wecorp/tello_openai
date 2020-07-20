@@ -13,10 +13,11 @@ class Detection:
         bboxes = []
         for i in indices:
             i = i[0]
-            bbox = boxes[i]
-            x1, y1, x2, y2 = bbox
-            cent_x = x1 + (x2-x1)/2
-            cent_y = y1 + (y2-y1)/2
-            centroids.append((int(cent_x), int(cent_y)))
-            bboxes.append(bbox)
+            if labels[i] == "person":
+                bbox = boxes[i]
+                x1, y1, x2, y2 = bbox
+                cent_x = x1 + (x2-x1)/2
+                cent_y = y1 + (y2-y1)/2
+                centroids.append((int(cent_x), int(cent_y)))
+                bboxes.append(bbox)
         return centroids, bboxes

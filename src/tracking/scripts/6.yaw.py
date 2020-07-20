@@ -29,8 +29,7 @@ class Stream(object):
         self.cv_bridge = CvBridge()
 
         # Connect to the drone
-        self.tracking = False
-        self.speed = 50
+        self.speed = 10
         self.track_cmd = ""
 
         self.drone = tellopy.Tello()
@@ -53,27 +52,25 @@ class Stream(object):
                 centroids, bboxes = detection.detect(frame)
                 if len(centroids) != 0:
                     target = centroids[0]
-                    xoffset = int(target[0] - 320)
-                    yoffset = int(240 - target[1])
 
+                    xoff = int(target[0] - 320)
                     distance = 100
                     cmd = ""
-                    if self.tracking:
-                        if xoff < -distance:
-                            cmd = "counter_clockwise"
-                        elif xoff > distance:
-                            cmd = "clockwise"
-                        else:
-                            if self.track_cmd is not "":
-                                getattr(self.drone, self.track_cmd)(0)
-                                self.track_cmd = ""
+                    
+                    if xoff < -distance:
+                        cmd = "counter_clockwise"
+                    elif xoff > distance:
+                        cmd = "clockwise"
+                    else:
+                        if self.track_cmd is not "":
+                            getattr(self.drone, self.track_cmd)(0)
+                            self.track_cmd = ""
 
                     if cmd is not self.track_cmd:
                         if cmd is not "":
                             print("track command:", cmd)
                             getattr(self.drone, cmd)(self.speed)
                             self.track_cmd = cmd
-
 
                     cv2.circle(frame, (target[0], target[1]), 3, [0,0,255], -1, cv2.LINE_AA)
 
