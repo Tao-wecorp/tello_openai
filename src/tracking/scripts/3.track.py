@@ -29,7 +29,7 @@ class Detect(object):
         rospy.Subscriber('/tello/image_raw', Image, self.img_callback)
         rospy.Subscriber('/keypress', String, self.key_callback)
 
-        self.target_pub = rospy.Publisher('tello/target', BBox, queue_size=1)
+        self.target_pub = rospy.Publisher('tello/target', Target, queue_size=1)
         
         while not rospy.is_shutdown():
             if self.frame is not None:
@@ -41,7 +41,7 @@ class Detect(object):
                     target = centroids[0]
                     print(target)
                     
-                    cv2.circle(frame, (cent[0], cent[1]), 3, [0,0,255], -1, cv2.LINE_AA)
+                    cv2.circle(frame, (target[0], target[1]), 3, [0,0,255], -1, cv2.LINE_AA)
 
                 cv2.imshow("", frame)
                 cv2.waitKey(1)
