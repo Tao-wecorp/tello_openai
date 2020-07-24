@@ -26,7 +26,7 @@ class Stream(object):
         self.drone = tellopy.Tello()
         self.drone.connect()
         self.drone.wait_for_connection(60.0)
-        self.drone.takeoff()
+        # self.drone.takeoff()
         rospy.loginfo('connected to drone')
 
         # Start video thread
@@ -47,32 +47,7 @@ class Stream(object):
 
         for frame in container.decode(video=0):
             color_mat = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
-            frame = deepcopy(color_mat)
-            frame = cv2.resize(frame, (640,480))
-            centroids, bboxes = detection.detect(frame)
-            if len(centroids) != 0:
-                target = centroids[0]
-
-                xoff = int(target[0] - 320)
-                distance = 100
-                cmd = ""
-
-                if xoff < -distance:
-                    cmd = "counter_clockwise"
-                elif xoff > distance:
-                    cmd = "clockwise"
-                else:
-                    if self.track_cmd is not "":
-                        getattr(self.drone, self.track_cmd)(0)
-                        self.track_cmd = ""
-
-                if cmd is not self.track_cmd:
-                    if cmd is not "":
-                        print("track command:", cmd)
-                        getattr(self.drone, cmd)(self.speed)
-                        self.track_cmd = cmd
-
-                cv2.circle(frame, (target[0], target[1]), 3, [0,0,255], -1, cv2.LINE_AA)
+            self.image_pub.publish(self.cv_bridge.cv2_to_imgmsg(color_mat, 'bgr8'))
 
             if self.stop_request.isSet():
                 return
