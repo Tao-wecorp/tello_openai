@@ -1,31 +1,23 @@
 #!/usr/bin/env python
 
-import threading
-import rospy
-from sensor_msgs.msg import Image
-from std_msgs.msg import Float64, String
-from std_msgs.msg import Empty
-
 import av
 import cv2
 from copy import deepcopy
-import numpy as np
-import tellopy
-from cv_bridge import CvBridge
-import time
-from scipy.spatial import distance as dist
-
 from math import *
+import numpy as np
 import os
-import rospy
-import rospkg
-rospack = rospkg.RosPack()
+from scipy.spatial import distance as dist
+import threading
+import tellopy
+import time
 
-from std_msgs.msg import Int8, String
+# ros
+import rospy
 from sensor_msgs.msg import Image
+from std_msgs.msg import Int8, Empty, Float64, String
 from tracking.msg import BBox, BBoxes
 
-# Helpers
+# helpers
 from helpers.cvlib import Detection
 detection = Detection()
 
@@ -36,9 +28,9 @@ feature_dist = 0.4
 neighbor_dist = 0.15
 
 
-class Stream(object):
+class Yaw(object):
     def __init__(self):
-        rospy.init_node('stream_node', anonymous=False)
+        rospy.init_node('yaw_node', anonymous=False)
         rate = rospy.Rate(30)
 
         # Connect to the drone
@@ -129,21 +121,22 @@ class Stream(object):
     def key_callback(self, data):
         if data.data != "":
             self.keypress = int(data.data)
-    
+        else:
+            self.keypress = -1
+
     def video_worker(self):
         container = av.open(self.drone.get_video_stream())
         rospy.loginfo('starting video pipeline')
 
         for frame in container.decode(video=0):
             self.frame = cv2.cvtColor(np.array(frame.to_image()), cv2.COLOR_RGB2BGR)
-
             if self.stop_request.isSet():
                 return
 
     #Tracking functions
     def __roi(self, centroids, bboxes):
         # Logic: 
-        # Only compare features of targets within centroids ROI
+        # 1. Only compare features of targets within centroids ROI
 
         centroids_dist = np.array(abs(centroids[:, [0]] - self.prev_target_cent[0])).flatten()
         position_roi = np.where(centroids_dist < roi_dist)[0]
@@ -182,7 +175,7 @@ class Stream(object):
 
 def main():
     try:
-        Stream()
+        Yaw()
     except KeyboardInterrupt:
         pass
     
