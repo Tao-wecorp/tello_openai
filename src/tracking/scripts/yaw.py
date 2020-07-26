@@ -65,7 +65,7 @@ class Yaw(object):
         while not rospy.is_shutdown():
             if self.frame is not None:
                 frame = deepcopy(self.frame)
-                frame = cv2.resize(frame, (height, width))
+                frame = cv2.resize(frame, (width, height))
                 centroids, bboxes = detection.detect(frame) # arrays
 
                 if len(centroids) > 0:
@@ -85,12 +85,13 @@ class Yaw(object):
                         tracking_id = self.__assignNewTrackingId(features_distance, threshold=feature_dist)
 
                         if tracking_id != -1:
+                            print(tracking_id)
                             taeget_cent = centroids[tracking_id]
                             self.prev_target_cent = taeget_cent # for roi 
                             cv2.rectangle(frame, (taeget_cent[0]-20, taeget_cent[1]-40), (taeget_cent[0]+20, taeget_cent[1]+40), (0,0, 255), 1)
 
-                            xoff = int(taeget_cent[0] - width/2)
-                            self.__yaw(xoff)
+                            # xoff = int(taeget_cent[0] - width/2)
+                            # self.__yaw(xoff)
                 
                     i = 0
                     for cent in centroids:                   
