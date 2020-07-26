@@ -33,81 +33,68 @@ class Yaw(object):
         rospy.init_node('yaw_node', anonymous=False)
         rate = rospy.Rate(30)
 
-        # Connect to the drone
-        self.speed = 50
-        self.track_cmd = ""
-        self.prev_keypress = -1
-        self.keypress = -1
-        rospy.Subscriber('/keypress', String, self.key_callback)
-
+        # connect to the drone
         self.drone = tellopy.Tello()
         self.drone.connect()
         self.drone.wait_for_connection(60.0)
         self.drone.takeoff()
         rospy.loginfo('connected to drone')
 
-        # # Start video thread
+        # start video thread
         self.stop_request = threading.Event()
         video_thread = threading.Thread(target=self.video_worker)
         video_thread.start()
-
         self.frame = None
+
+        # keypress for selection
+        self.prev_keypress = -1
+        self.keypress = -1
+        rospy.Subscriber('/keypress', String, self.key_callback)
+
+        # yaw cmd
+        self.yaw_speed = 50
+        self.yaw_cmd = ""
+
+        # tracking history
         self.tracking_bbox_features = None
         self.prev_target_cent = None
         self.prev_target_features = None
-
-        target_id = 0
+        target_id = -1
+        
         while not rospy.is_shutdown():
             if self.frame is not None:
                 frame = deepcopy(self.frame)
-                centroids, bboxes = detection.detect(frame)
+                centroids, bboxes = detection.detect(frame) # arrays
 
                 if len(centroids) > 0:
+                    # select target id using keypress
                     if self.keypress != -1 and self.keypress != self.prev_keypress:
                         target_id = self.keypress
                         self.tracking_bbox_features = mars.extractBBoxFeatures(frame, bboxes, target_id)
                         self.prev_target_cent = centroids[target_id]
                         self.prev_keypress = self.keypress
-                        print("catch once")
                     elif self.prev_target_cent is not None:
                         print("start tracking")
                         # centroids_roi, bboxes_roi = self.__roi(centroids, bboxes)
-
                         # if len(centroids_roi) > 0:
+
                         # extract features of bboxes
                         bboxes_features = mars.extractBBoxesFeatures(frame, bboxes)
                         features_distance = dist.cdist(self.tracking_bbox_features, bboxes_features, "cosine")[0]
                         tracking_id = self.__assignNewTrackingId(features_distance, threshold=feature_dist)
 
                         if tracking_id != -1:
-                            print(tracking_id)
                             taeget_cent = centroids[tracking_id]
-                            self.prev_target_cent = taeget_cent
-                            cv2.rectangle(frame, (taeget_cent[0]-20, taeget_cent[1]-40), (taeget_cent[0]+20, taeget_cent[1]+40), (255,0,0), 1)
+                            self.prev_target_cent = taeget_cent # for roi 
+                            cv2.rectangle(frame, (taeget_cent[0]-20, taeget_cent[1]-40), (taeget_cent[0]+20, taeget_cent[1]+40), (0,0, 255), 1)
 
                             xoff = int(taeget_cent[0] - 320)
-                            distance = 100
-                            cmd = ""
-                            
-                            if xoff < -distance:
-                                cmd = "counter_clockwise"
-                            elif xoff > distance:
-                                cmd = "clockwise"
-                            else:
-                                if self.track_cmd is not "":
-                                    getattr(self.drone, self.track_cmd)(0)
-                                    self.track_cmd = ""
-
-                            if cmd is not self.track_cmd:
-                                if cmd is not "":
-                                    print("track command:", cmd)
-                                    getattr(self.drone, cmd)(self.speed)
-                                    self.track_cmd = cmd
+                            self.__yaw(xoff)
                 
                     i = 0
                     for cent in centroids:                   
                         cv2.circle(frame, (cent[0], cent[1]), 3, [0,0,255], -1, cv2.LINE_AA)
-                        cv2.putText(frame, str(i), (cent[0], cent[1]), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255), 2)
+                        cv2.putText(frame, str(i), (cent[0], cent[1]), cv2.FONT_HERSHEY_PLAIN, 1, (255,0,0), 2)
                         i = i + 1
 
                 cv2.imshow("", frame)
@@ -166,11 +153,30 @@ class Yaw(object):
 
         return tracking_id
 
+    # yaw
+    def __yaw(self, xoff):
+        distance = 100
+        cmd = ""
+        
+        if xoff < -distance:
+            cmd = "counter_clockwise"
+        elif xoff > distance:
+            cmd = "clockwise"
+        else:
+            if self.yaw_cmd is not "":
+                getattr(self.drone, self.yaw_cmd)(0)
+                self.yaw_cmd = ""
+
+        if cmd is not self.yaw_cmd:
+            if cmd is not "":
+                getattr(self.drone, cmd)(self.yaw_speed)
+                self.yaw_cmd = cmd
+
     def shutdown(self):
-            self.stop_request.set()
-            self.drone.land()
-            self.drone.quit()
-            self.drone = None
+        self.stop_request.set()
+        self.drone.land()
+        self.drone.quit()
+        self.drone = None
 
 
 def main():
