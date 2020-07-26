@@ -74,7 +74,6 @@ class Yaw(object):
                         self.prev_target_cent = centroids[target_id]
                         self.prev_keypress = self.keypress
                     elif self.prev_target_cent is not None:
-                        print("start tracking")
                         # centroids_roi, bboxes_roi = self.__roi(centroids, bboxes)
                         # if len(centroids_roi) > 0:
 

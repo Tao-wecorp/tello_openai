@@ -8,7 +8,7 @@ import numpy as np
 class Detection:
     def detect(self, cv_image):
         boxes, labels, confs = cv.detect_common_objects(cv_image, model='yolov3-tiny', enable_gpu=True)
-        indices = cv2.dnn.NMSBoxes(boxes, confs, score_threshold=0.8, nms_threshold=0.8)
+        indices = cv2.dnn.NMSBoxes(boxes, confs, score_threshold=0.2, nms_threshold=0.8)
 
         centroids = []
         bboxes = []

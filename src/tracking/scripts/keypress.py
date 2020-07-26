@@ -7,7 +7,6 @@ import sys, select, termios, tty
 import threading
 import time
 
-
 class Keypress(threading.Thread):
     def __init__(self):
         super(Keypress, self).__init__()
@@ -15,8 +14,6 @@ class Keypress(threading.Thread):
         self.condition = threading.Condition()
         self.done = False
         self.key = ""
-
-        self.start()
         
     def update(self, key):
         self.condition.acquire()
