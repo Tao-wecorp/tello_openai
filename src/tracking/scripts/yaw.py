@@ -26,7 +26,8 @@ mars = DeepFeatures()
 roi_dist = 400 # To-do: dynamic
 feature_dist = 0.4
 neighbor_dist = 0.15
-
+width = 640
+height = 480
 
 class Yaw(object):
     def __init__(self):
@@ -64,6 +65,7 @@ class Yaw(object):
         while not rospy.is_shutdown():
             if self.frame is not None:
                 frame = deepcopy(self.frame)
+                frame = cv2.resize(frame, (height, width))
                 centroids, bboxes = detection.detect(frame) # arrays
 
                 if len(centroids) > 0:
@@ -87,7 +89,7 @@ class Yaw(object):
                             self.prev_target_cent = taeget_cent # for roi 
                             cv2.rectangle(frame, (taeget_cent[0]-20, taeget_cent[1]-40), (taeget_cent[0]+20, taeget_cent[1]+40), (0,0, 255), 1)
 
-                            xoff = int(taeget_cent[0] - 320)
+                            xoff = int(taeget_cent[0] - width/2)
                             self.__yaw(xoff)
                 
                     i = 0
