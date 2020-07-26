@@ -62,8 +62,8 @@ if __name__=="__main__":
             if (key == '\x03'):
                 break
             keypress.update(key)
-            time.sleep(0.1)
-            keypress.stop()
+            # time.sleep(0.1)
+            # keypress.stop()
 
     except Exception as e:
         print(e)

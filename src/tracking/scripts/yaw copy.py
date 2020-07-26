@@ -9,21 +9,10 @@ from std_msgs.msg import Empty
 import av
 import cv2
 from copy import deepcopy
-import numpy as np
+import numpy
 import tellopy
 from cv_bridge import CvBridge
 import time
-from scipy.spatial import distance as dist
-
-from math import *
-import os
-import rospy
-import rospkg
-rospack = rospkg.RosPack()
-
-from std_msgs.msg import Int8, String
-from sensor_msgs.msg import Image
-from tracking.msg import BBox, BBoxes
 
 # Helpers
 from helpers.cvlib import Detection
@@ -41,20 +30,21 @@ class Stream(object):
         rospy.init_node('stream_node', anonymous=False)
         rate = rospy.Rate(30)
 
+        # ROS publishers
+        self.image_pub = rospy.Publisher('tello/image_raw', Image, queue_size=1)
+        self.cv_bridge = CvBridge()
+
         # Connect to the drone
-        self.speed = 50
+        self.speed = 0
         self.track_cmd = ""
-        self.prev_keypress = -1
-        self.keypress = -1
-        rospy.Subscriber('/keypress', String, self.key_callback)
 
         self.drone = tellopy.Tello()
         self.drone.connect()
         self.drone.wait_for_connection(60.0)
-        self.drone.takeoff()
+        # self.drone.takeoff()
         rospy.loginfo('connected to drone')
 
-        # # Start video thread
+        # Start video thread
         self.stop_request = threading.Event()
         video_thread = threading.Thread(target=self.video_worker)
         video_thread.start()
@@ -64,78 +54,67 @@ class Stream(object):
         self.prev_target_cent = None
         self.prev_target_features = None
 
+        frame_count = 0
         target_id = 0
         while not rospy.is_shutdown():
             if self.frame is not None:
                 frame = deepcopy(self.frame)
+                # frame = cv2.resize(frame, (640,480))
                 centroids, bboxes = detection.detect(frame)
 
-                if len(centroids) > 0:
-                    if self.keypress != -1 and self.keypress != self.prev_keypress:
-                        target_id = self.keypress
-                        self.tracking_bbox_features = mars.extractBBoxFeatures(frame, bboxes, target_id)
-                        self.prev_target_cent = centroids[target_id]
-                        self.prev_keypress = self.keypress
-                        print("catch once")
-                    elif self.prev_target_cent is not None:
-                        print("start tracking")
-                        # centroids_roi, bboxes_roi = self.__roi(centroids, bboxes)
+                if len(centroids) != 0:
+                    break
 
-                        # if len(centroids_roi) > 0:
+                if frame_count == 0:
+                    self.tracking_bbox_features = mars.extractBBoxFeatures(frame, bboxes, target_id)
+                    self.prev_target_cent = centroids[target_id]
+                else:
+                    centroids_roi, bboxes_roi = self.__roi(centroids, bboxes)
+
+                    if len(centroids_roi) > 0:
                         # extract features of bboxes
-                        bboxes_features = mars.extractBBoxesFeatures(frame, bboxes)
+                        bboxes_features = mars.extractBBoxesFeatures(frame, bboxes_roi)
                         features_distance = dist.cdist(self.tracking_bbox_features, bboxes_features, "cosine")[0]
                         tracking_id = self.__assignNewTrackingId(features_distance, threshold=feature_dist)
 
                         if tracking_id != -1:
-                            print(tracking_id)
-                            taeget_cent = centroids[tracking_id]
+                            taeget_cent = centroids_roi[tracking_id]
                             self.prev_target_cent = taeget_cent
                             cv2.rectangle(frame, (taeget_cent[0]-20, taeget_cent[1]-40), (taeget_cent[0]+20, taeget_cent[1]+40), (255,0,0), 1)
+                            cv2.putText(frame, str(frame_count), (taeget_cent[0]-20, taeget_cent[1]-40), cv2.FONT_HERSHEY_PLAIN, 10, (0,0,255), 3)
 
-                            xoff = int(taeget_cent[0] - 320)
-                            distance = 100
-                            cmd = ""
-                            
-                            if xoff < -distance:
-                                cmd = "counter_clockwise"
-                            elif xoff > distance:
-                                cmd = "clockwise"
-                            else:
-                                if self.track_cmd is not "":
-                                    getattr(self.drone, self.track_cmd)(0)
-                                    self.track_cmd = ""
+                frame_count = frame_count + 1
 
-                            if cmd is not self.track_cmd:
-                                if cmd is not "":
-                                    print("track command:", cmd)
-                                    getattr(self.drone, cmd)(self.speed)
-                                    self.track_cmd = cmd
+                xoff = int(taeget_cent[0] - 320)
+                distance = 100
+                cmd = ""
                 
-                    i = 0
-                    for cent in centroids:                   
-                        cv2.circle(frame, (cent[0], cent[1]), 3, [0,0,255], -1, cv2.LINE_AA)
-                        cv2.putText(frame, str(i), (cent[0], cent[1]), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255), 2)
-                        i = i + 1
+                if xoff < -distance:
+                    cmd = "counter_clockwise"
+                elif xoff > distance:
+                    cmd = "clockwise"
+                else:
+                    if self.track_cmd is not "":
+                        getattr(self.drone, self.track_cmd)(0)
+                        self.track_cmd = ""
 
-                cv2.imshow("", frame)
-                cv2.waitKey(1)
+                if cmd is not self.track_cmd:
+                    if cmd is not "":
+                        print("track command:", cmd)
+                        getattr(self.drone, cmd)(self.speed)
+                        self.track_cmd = cmd
+
             rate.sleep()
         
         rospy.spin()
         rospy.on_shutdown(self.shutdown)
-
-
-    def key_callback(self, data):
-        if data.data != "":
-            self.keypress = int(data.data)
     
     def video_worker(self):
         container = av.open(self.drone.get_video_stream())
         rospy.loginfo('starting video pipeline')
 
         for frame in container.decode(video=0):
-            self.frame = cv2.cvtColor(np.array(frame.to_image()), cv2.COLOR_RGB2BGR)
+            self.frame = cv2.cvtColor(numpy.array(frame.to_image()), cv2.COLOR_RGB2BGR)
 
             if self.stop_request.isSet():
                 return

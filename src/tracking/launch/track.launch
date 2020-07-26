@@ -1,5 +1,6 @@
 <launch>	
-    <node pkg="tracking" type="6.yaw.py" name="stream" output="screen" />
+    <node pkg="tracking" type="yaw.py" name="yaw" output="screen" />
+     <node pkg="tracking" type="keypress.py" name="keypress" output="screen" />
     <!-- <node pkg="tracking" type="detect.py" name="detect" output="screen" /> -->
     <!-- <node pkg="tracking" type="keypress.py" name="keypress" output="screen" /> -->
     <!-- <node pkg="tracking" type="3.track.py" name="track" output="screen" /> -->
